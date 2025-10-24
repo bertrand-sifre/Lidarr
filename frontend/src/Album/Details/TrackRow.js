@@ -4,6 +4,7 @@ import AlbumFormats from 'Album/AlbumFormats';
 import EpisodeStatusConnector from 'Album/EpisodeStatusConnector';
 import IndexerFlags from 'Album/IndexerFlags';
 import Icon from 'Components/Icon';
+import MonitorToggleButton from 'Components/MonitorToggleButton';
 import TableRowCell from 'Components/Table/Cells/TableRowCell';
 import TableRow from 'Components/Table/TableRow';
 import Popover from 'Components/Tooltip/Popover';
@@ -21,6 +22,20 @@ import styles from './TrackRow.css';
 class TrackRow extends Component {
 
   //
+  // Listeners
+
+  onMonitoredPress = (monitored) => {
+    const {
+      id
+    } = this.props;
+
+    this.props.onToggleTrackMonitoredPress({
+      trackId: id,
+      monitored
+    });
+  };
+
+  //
   // Render
 
   render() {
@@ -32,6 +47,8 @@ class TrackRow extends Component {
       absoluteTrackNumber,
       title,
       duration,
+      monitored,
+      isSaving,
       trackFilePath,
       trackFileSize,
       customFormats,
@@ -52,6 +69,21 @@ class TrackRow extends Component {
 
             if (!isVisible) {
               return null;
+            }
+
+            if (name === 'monitored') {
+              return (
+                <TableRowCell
+                  key={name}
+                  className={styles.monitored}
+                >
+                  <MonitorToggleButton
+                    monitored={monitored}
+                    isSaving={isSaving}
+                    onPress={this.onMonitoredPress}
+                  />
+                </TableRowCell>
+              );
             }
 
             if (name === 'medium') {
@@ -218,6 +250,7 @@ class TrackRow extends Component {
 
 TrackRow.propTypes = {
   deleteTrackFile: PropTypes.func.isRequired,
+  onToggleTrackMonitoredPress: PropTypes.func.isRequired,
   id: PropTypes.number.isRequired,
   albumId: PropTypes.number.isRequired,
   trackFileId: PropTypes.number,
@@ -226,6 +259,7 @@ TrackRow.propTypes = {
   absoluteTrackNumber: PropTypes.number,
   title: PropTypes.string.isRequired,
   duration: PropTypes.number.isRequired,
+  monitored: PropTypes.bool.isRequired,
   isSaving: PropTypes.bool,
   trackFilePath: PropTypes.string,
   trackFileSize: PropTypes.number,

@@ -124,6 +124,7 @@ class AlbumDetailsConnector extends Component {
     const {
       id,
       anyReleaseOk,
+      monitored,
       isRenamingFiles,
       isRenamingArtist
     } = this.props;
@@ -132,7 +133,8 @@ class AlbumDetailsConnector extends Component {
       (prevProps.isRenamingFiles && !isRenamingFiles) ||
       (prevProps.isRenamingArtist && !isRenamingArtist) ||
       !_.isEqual(getMonitoredReleases(prevProps), getMonitoredReleases(this.props)) ||
-      (prevProps.anyReleaseOk === false && anyReleaseOk === true)
+      (prevProps.anyReleaseOk === false && anyReleaseOk === true) ||
+      prevProps.monitored !== monitored
     ) {
       this.unpopulate();
       this.populate();
