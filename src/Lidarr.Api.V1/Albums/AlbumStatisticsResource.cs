@@ -7,6 +7,7 @@ namespace Lidarr.Api.V1.Albums
         public int TrackFileCount { get; set; }
         public int TrackCount { get; set; }
         public int TotalTrackCount { get; set; }
+        public int MonitoredTrackCount { get; set; }
         public long SizeOnDisk { get; set; }
 
         public decimal PercentOfTracks
@@ -37,6 +38,7 @@ namespace Lidarr.Api.V1.Albums
                 TrackFileCount = model.TrackFileCount,
                 TrackCount = model.TrackCount,
                 TotalTrackCount = model.TotalTrackCount,
+                MonitoredTrackCount = model.MonitoredTrackCount,
                 SizeOnDisk = model.SizeOnDisk
             };
         }

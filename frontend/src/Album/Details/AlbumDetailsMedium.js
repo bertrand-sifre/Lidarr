@@ -6,9 +6,11 @@ import IconButton from 'Components/Link/IconButton';
 import Link from 'Components/Link/Link';
 import Table from 'Components/Table/Table';
 import TableBody from 'Components/Table/TableBody';
-import { icons, kinds, sizes } from 'Helpers/Props';
+import Popover from 'Components/Tooltip/Popover';
+import { icons, kinds, sizes, tooltipPositions } from 'Helpers/Props';
 import isAfter from 'Utilities/Date/isAfter';
 import translate from 'Utilities/String/translate';
+import TrackGroupInfo from './TrackGroupInfo';
 import TrackRowConnector from './TrackRowConnector';
 import styles from './AlbumDetailsMedium.css';
 
@@ -16,10 +18,20 @@ function getMediumStatistics(tracks) {
   const trackCount = tracks.length;
   let trackFileCount = 0;
   let totalTrackCount = 0;
+  let monitoredTrackCount = 0;
+  let sizeOnDisk = 0;
 
   tracks.forEach((track) => {
     if (track.trackFileId) {
       trackFileCount++;
+    }
+
+    if (track.monitored) {
+      monitoredTrackCount++;
+    }
+
+    if (track.trackFile) {
+      sizeOnDisk += track.trackFile.size || 0;
     }
 
     totalTrackCount++;
@@ -28,12 +40,14 @@ function getMediumStatistics(tracks) {
   return {
     trackCount,
     trackFileCount,
-    totalTrackCount
+    totalTrackCount,
+    monitoredTrackCount,
+    sizeOnDisk
   };
 }
 
-function getTrackCountKind(monitored, releaseDate, trackFileCount, trackCount) {
-  if (trackFileCount === trackCount && trackCount > 0) {
+function getTrackCountKind(monitored, releaseDate, trackFileCount, monitoredTrackCount) {
+  if (trackFileCount === monitoredTrackCount && monitoredTrackCount > 0) {
     return kinds.SUCCESS;
   }
 
@@ -106,7 +120,9 @@ class AlbumDetailsMedium extends Component {
     const {
       trackCount,
       trackFileCount,
-      totalTrackCount
+      totalTrackCount,
+      monitoredTrackCount,
+      sizeOnDisk
     } = getMediumStatistics(items);
 
     return (
@@ -123,15 +139,27 @@ class AlbumDetailsMedium extends Component {
               </div>
             }
 
-            <Label
-              title={translate('TotalTrackCountTracksTotalTrackFileCountTracksWithFilesInterp', [totalTrackCount, trackFileCount])}
-              kind={getTrackCountKind(albumMonitored, albumReleaseDate, trackFileCount, trackCount)}
-              size={sizes.LARGE}
-            >
-              {
-                <span>{trackFileCount} / {trackCount}</span>
+            <Popover
+              canFlip={true}
+              anchor={
+                <Label
+                  kind={getTrackCountKind(albumMonitored, albumReleaseDate, trackFileCount, monitoredTrackCount)}
+                  size={sizes.LARGE}
+                >
+                  <span>{trackFileCount} / {monitoredTrackCount}</span>
+                </Label>
               }
-            </Label>
+              title={translate('GroupInformation')}
+              body={
+                <TrackGroupInfo
+                  totalTrackCount={totalTrackCount}
+                  monitoredTrackCount={monitoredTrackCount}
+                  trackFileCount={trackFileCount}
+                  sizeOnDisk={sizeOnDisk}
+                />
+              }
+              position={tooltipPositions.BOTTOM}
+            />
           </div>
 
           <Link

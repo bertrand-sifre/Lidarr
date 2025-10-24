@@ -2,21 +2,22 @@ import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import AlbumSearchCellConnector from 'Album/AlbumSearchCellConnector';
 import AlbumTitleLink from 'Album/AlbumTitleLink';
+import TrackGroupInfo from 'Album/Details/TrackGroupInfo';
 import Label from 'Components/Label';
 import MonitorToggleButton from 'Components/MonitorToggleButton';
 import StarRating from 'Components/StarRating';
 import RelativeDateCellConnector from 'Components/Table/Cells/RelativeDateCellConnector';
 import TableRowCell from 'Components/Table/Cells/TableRowCell';
 import TableRow from 'Components/Table/TableRow';
-import { kinds, sizes } from 'Helpers/Props';
+import Popover from 'Components/Tooltip/Popover';
+import { kinds, sizes, tooltipPositions } from 'Helpers/Props';
 import formatTimeSpan from 'Utilities/Date/formatTimeSpan';
 import isAfter from 'Utilities/Date/isAfter';
-import formatBytes from 'Utilities/Number/formatBytes';
 import translate from 'Utilities/String/translate';
 import styles from './AlbumRow.css';
 
-function getTrackCountKind(monitored, releaseDate, trackFileCount, trackCount) {
-  if (trackFileCount === trackCount && trackCount > 0) {
+function getTrackCountKind(monitored, releaseDate, trackFileCount, monitoredTrackCount) {
+  if (trackFileCount === monitoredTrackCount && monitoredTrackCount > 0) {
     return kinds.SUCCESS;
   }
 
@@ -94,6 +95,7 @@ class AlbumRow extends Component {
       trackCount = 0,
       trackFileCount = 0,
       totalTrackCount = 0,
+      monitoredTrackCount = 0,
       sizeOnDisk = 0
     } = statistics;
 
@@ -218,15 +220,27 @@ class AlbumRow extends Component {
                   key={name}
                   className={styles.status}
                 >
-                  <Label
-                    title={translate('TotalTrackCountTracksTotalTrackFileCountTracksWithFilesInterp', [totalTrackCount, trackFileCount])}
-                    kind={getTrackCountKind(monitored, releaseDate, trackFileCount, trackCount)}
-                    size={sizes.MEDIUM}
-                  >
-                    {
-                      <span>{trackFileCount} / {trackCount}</span>
+                  <Popover
+                    canFlip={true}
+                    anchor={
+                      <Label
+                        kind={getTrackCountKind(monitored, releaseDate, trackFileCount, monitoredTrackCount)}
+                        size={sizes.MEDIUM}
+                      >
+                        <span>{trackFileCount} / {monitoredTrackCount}</span>
+                      </Label>
                     }
-                  </Label>
+                    title={translate('GroupInformation')}
+                    body={
+                      <TrackGroupInfo
+                        totalTrackCount={totalTrackCount}
+                        monitoredTrackCount={monitoredTrackCount}
+                        trackFileCount={trackFileCount}
+                        sizeOnDisk={sizeOnDisk}
+                      />
+                    }
+                    position={tooltipPositions.BOTTOM}
+                  />
                 </TableRowCell>
               );
             }
