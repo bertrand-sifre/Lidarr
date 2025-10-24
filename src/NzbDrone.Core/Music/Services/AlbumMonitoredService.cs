@@ -14,12 +14,14 @@ namespace NzbDrone.Core.Music
     {
         private readonly IArtistService _artistService;
         private readonly IAlbumService _albumService;
+        private readonly ITrackService _trackService;
         private readonly Logger _logger;
 
-        public AlbumMonitoredService(IArtistService artistService, IAlbumService albumService, Logger logger)
+        public AlbumMonitoredService(IArtistService artistService, IAlbumService albumService, ITrackService trackService, Logger logger)
         {
             _artistService = artistService;
             _albumService = albumService;
+            _trackService = trackService;
             _logger = logger;
         }
 
@@ -46,8 +48,8 @@ namespace NzbDrone.Core.Music
             // If specific albums are passed use those instead of the monitoring options.
             if (monitoredAlbums.Any())
             {
-                ToggleAlbumsMonitoredState(albums.Where(s => monitoredAlbums.Contains(s.ForeignAlbumId)), true);
-                ToggleAlbumsMonitoredState(albums.Where(s => !monitoredAlbums.Contains(s.ForeignAlbumId)), false);
+                ToggleAlbumsMonitoredState(albums.Where(s => monitoredAlbums.Contains(s.ForeignAlbumId)), true, setTracks: true);
+                ToggleAlbumsMonitoredState(albums.Where(s => !monitoredAlbums.Contains(s.ForeignAlbumId)), false, setTracks: true);
             }
             else
             {
@@ -58,39 +60,39 @@ namespace NzbDrone.Core.Music
                 {
                     case MonitorTypes.All:
                         _logger.Debug("Monitoring all albums");
-                        ToggleAlbumsMonitoredState(albums, true);
+                        ToggleAlbumsMonitoredState(albums, true, setTracks: true);
                         break;
                     case MonitorTypes.Future:
                         _logger.Debug("Unmonitoring Albums with Files");
-                        ToggleAlbumsMonitoredState(albums.Where(e => albumsWithFiles.Select(c => c.Id).Contains(e.Id)), false);
+                        ToggleAlbumsMonitoredState(albums.Where(e => albumsWithFiles.Select(c => c.Id).Contains(e.Id)), false, setTracks: true);
                         _logger.Debug("Unmonitoring Albums without Files");
-                        ToggleAlbumsMonitoredState(albums.Where(e => albumsWithoutFiles.Select(c => c.Id).Contains(e.Id)), false);
+                        ToggleAlbumsMonitoredState(albums.Where(e => albumsWithoutFiles.Select(c => c.Id).Contains(e.Id)), false, setTracks: true);
                         break;
                     case MonitorTypes.Missing:
                         _logger.Debug("Unmonitoring Albums with Files");
-                        ToggleAlbumsMonitoredState(albums.Where(e => albumsWithFiles.Select(c => c.Id).Contains(e.Id)), false);
+                        ToggleAlbumsMonitoredState(albums.Where(e => albumsWithFiles.Select(c => c.Id).Contains(e.Id)), false, setTracks: true);
                         _logger.Debug("Monitoring Albums without Files");
-                        ToggleAlbumsMonitoredState(albums.Where(e => albumsWithoutFiles.Select(c => c.Id).Contains(e.Id)), true);
+                        ToggleAlbumsMonitoredState(albums.Where(e => albumsWithoutFiles.Select(c => c.Id).Contains(e.Id)), true, setTracks: true);
                         break;
                     case MonitorTypes.Existing:
                         _logger.Debug("Monitoring Albums with Files");
-                        ToggleAlbumsMonitoredState(albums.Where(e => albumsWithFiles.Select(c => c.Id).Contains(e.Id)), true);
+                        ToggleAlbumsMonitoredState(albums.Where(e => albumsWithFiles.Select(c => c.Id).Contains(e.Id)), true, setTracks: true);
                         _logger.Debug("Unmonitoring Albums without Files");
-                        ToggleAlbumsMonitoredState(albums.Where(e => albumsWithoutFiles.Select(c => c.Id).Contains(e.Id)), false);
+                        ToggleAlbumsMonitoredState(albums.Where(e => albumsWithoutFiles.Select(c => c.Id).Contains(e.Id)), false, setTracks: true);
                         break;
                     case MonitorTypes.Latest:
                         _logger.Debug("Monitoring latest album");
-                        ToggleAlbumsMonitoredState(albums, false);
-                        ToggleAlbumsMonitoredState(albums.OrderByDescending(e => e.ReleaseDate).Take(1), true);
+                        ToggleAlbumsMonitoredState(albums, false, setTracks: true);
+                        ToggleAlbumsMonitoredState(albums.OrderByDescending(e => e.ReleaseDate).Take(1), true, setTracks: true);
                         break;
                     case MonitorTypes.First:
                         _logger.Debug("Monitoring first album");
-                        ToggleAlbumsMonitoredState(albums, false);
-                        ToggleAlbumsMonitoredState(albums.OrderBy(e => e.ReleaseDate).Take(1), true);
+                        ToggleAlbumsMonitoredState(albums, false, setTracks: true);
+                        ToggleAlbumsMonitoredState(albums.OrderBy(e => e.ReleaseDate).Take(1), true, setTracks: true);
                         break;
                     case MonitorTypes.None:
                         _logger.Debug("Unmonitoring all albums");
-                        ToggleAlbumsMonitoredState(albums, false);
+                        ToggleAlbumsMonitoredState(albums, false, setTracks: true);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -101,11 +103,25 @@ namespace NzbDrone.Core.Music
             _artistService.UpdateArtist(artist);
         }
 
-        private void ToggleAlbumsMonitoredState(IEnumerable<Album> albums, bool monitored)
+        private void ToggleAlbumsMonitoredState(IEnumerable<Album> albums, bool monitored, bool setTracks = false)
         {
             foreach (var album in albums)
             {
                 album.Monitored = monitored;
+            }
+
+            if (setTracks)
+            {
+                var allTracks = albums.ToList()
+                    .SelectMany(a => _trackService.GetTracksByAlbum(a.Id))
+                    .ToList();
+                foreach (var track in allTracks)
+                {
+                    track.Monitored = monitored;
+                }
+
+                _trackService.UpdateMany(allTracks);
+                _logger.Debug("Update {0} tracks to monitored={1}", allTracks.Count, monitored);
             }
         }
     }

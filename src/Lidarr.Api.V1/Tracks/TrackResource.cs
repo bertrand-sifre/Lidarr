@@ -24,6 +24,7 @@ namespace Lidarr.Api.V1.Tracks
         public TrackFileResource TrackFile { get; set; }
         public int MediumNumber { get; set; }
         public bool HasFile { get; set; }
+        public bool Monitored { get; set; }
 
         public ArtistResource Artist { get; set; }
         public Ratings Ratings { get; set; }
@@ -60,6 +61,7 @@ namespace Lidarr.Api.V1.Tracks
                 MediumNumber = model.MediumNumber,
                 HasFile = model.HasFile,
                 Ratings = model.Ratings,
+                Monitored = model.Monitored,
             };
         }
 

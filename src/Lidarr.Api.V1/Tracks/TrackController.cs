@@ -13,13 +13,17 @@ namespace Lidarr.Api.V1.Tracks
     [V1ApiController]
     public class TrackController : TrackControllerWithSignalR
     {
+        private readonly ITrackMonitoredService _trackMonitoredService;
+
         public TrackController(IArtistService artistService,
                              ITrackService trackService,
+                             ITrackMonitoredService trackMonitoredService,
                              IUpgradableSpecification upgradableSpecification,
                              ICustomFormatCalculationService formatCalculator,
                              IBroadcastSignalRMessage signalRBroadcaster)
             : base(trackService, artistService, upgradableSpecification, formatCalculator, signalRBroadcaster)
         {
+            _trackMonitoredService = trackMonitoredService;
         }
 
         [HttpGet]
@@ -49,6 +53,17 @@ namespace Lidarr.Api.V1.Tracks
             }
 
             return MapToResource(_trackService.GetTracks(trackIds), false, false);
+        }
+
+        [HttpPut("monitor")]
+        public IActionResult SetTracksMonitored([FromBody] TracksMonitoredResource resource)
+        {
+            foreach (var trackId in resource.TrackIds)
+            {
+                _trackMonitoredService.SetTrackMonitored(trackId, resource.Monitored);
+            }
+
+            return Accepted(MapToResource(_trackService.GetTracks(resource.TrackIds), false, false));
         }
     }
 }

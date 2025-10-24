@@ -28,7 +28,8 @@ namespace NzbDrone.Core.Music
         void DeleteAlbum(int albumId, bool deleteFiles, bool addImportListExclusion = false);
         List<Album> GetAllAlbums();
         Album UpdateAlbum(Album album);
-        void SetAlbumMonitored(int albumId, bool monitored);
+        void SetAlbumMonitoredWithCascadeTracks(int albumId, bool monitored);
+        void SetAlbumMonitoredWithoutCascadeTracks(int albumId, bool monitored);
         void SetMonitored(IEnumerable<int> ids, bool monitored);
         void UpdateLastSearchTime(List<Album> albums);
         PagingSpec<Album> AlbumsWithoutFiles(PagingSpec<Album> pagingSpec);
@@ -49,16 +50,19 @@ namespace NzbDrone.Core.Music
         private readonly IAlbumRepository _albumRepository;
         private readonly IEventAggregator _eventAggregator;
         private readonly IMediaFileService _mediaFileService;
+        private readonly ITrackService _trackService;
         private readonly Logger _logger;
 
         public AlbumService(IAlbumRepository albumRepository,
                             IEventAggregator eventAggregator,
                             IMediaFileService mediaFileService,
+                            ITrackService trackService,
                             Logger logger)
         {
             _albumRepository = albumRepository;
             _eventAggregator = eventAggregator;
             _mediaFileService = mediaFileService;
+            _trackService = trackService;
             _logger = logger;
         }
 
@@ -280,7 +284,27 @@ namespace NzbDrone.Core.Music
             return updatedAlbum;
         }
 
-        public void SetAlbumMonitored(int albumId, bool monitored)
+        public void SetAlbumMonitoredWithCascadeTracks(int albumId, bool monitored)
+        {
+            var album = _albumRepository.Get(albumId);
+            _albumRepository.SetMonitoredFlat(album, monitored);
+
+            // Cascade monitoring changes to all tracks
+            var tracks = _trackService.GetTracksByAlbum(albumId);
+            foreach (var track in tracks)
+            {
+                track.Monitored = monitored;
+            }
+
+            _trackService.UpdateMany(tracks);
+
+            // publish album edited event so artist stats update
+            _eventAggregator.PublishEvent(new AlbumEditedEvent(album, album));
+
+            _logger.Debug("Monitored flag for Album:{0} was set to {1} (with cascading to tracks)", albumId, monitored);
+        }
+
+        public void SetAlbumMonitoredWithoutCascadeTracks(int albumId, bool monitored)
         {
             var album = _albumRepository.Get(albumId);
             _albumRepository.SetMonitoredFlat(album, monitored);
@@ -288,17 +312,14 @@ namespace NzbDrone.Core.Music
             // publish album edited event so artist stats update
             _eventAggregator.PublishEvent(new AlbumEditedEvent(album, album));
 
-            _logger.Debug("Monitored flag for Album:{0} was set to {1}", albumId, monitored);
+            _logger.Debug("Monitored flag for Album:{0} was set to {1} (without cascading to tracks)", albumId, monitored);
         }
 
         public void SetMonitored(IEnumerable<int> ids, bool monitored)
         {
-            _albumRepository.SetMonitored(ids, monitored);
-
-            // publish album edited event so artist stats update
-            foreach (var album in _albumRepository.Get(ids))
+            foreach (var id in ids.ToList())
             {
-                _eventAggregator.PublishEvent(new AlbumEditedEvent(album, album));
+                SetAlbumMonitoredWithCascadeTracks(id, monitored);
             }
         }
 

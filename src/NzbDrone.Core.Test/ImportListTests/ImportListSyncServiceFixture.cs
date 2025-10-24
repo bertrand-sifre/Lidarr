@@ -346,7 +346,7 @@ namespace NzbDrone.Core.Test.ImportListTests
             Subject.Execute(new ImportListSyncCommand());
 
             Mocker.GetMock<IAlbumService>()
-                .Verify(v => v.SetAlbumMonitored(1, true));
+                .Verify(v => v.SetAlbumMonitoredWithCascadeTracks(1, true));
         }
 
         [TestCase(ImportListMonitorType.SpecificAlbum)]
@@ -362,7 +362,7 @@ namespace NzbDrone.Core.Test.ImportListTests
             Subject.Execute(new ImportListSyncCommand());
 
             Mocker.GetMock<IAlbumService>()
-                .Verify(v => v.SetAlbumMonitored(1, true), Times.Never);
+                .Verify(v => v.SetAlbumMonitoredWithCascadeTracks(1, true), Times.Never);
         }
 
         [TestCase(ImportListMonitorType.SpecificAlbum, false)]
@@ -381,7 +381,7 @@ namespace NzbDrone.Core.Test.ImportListTests
             Subject.Execute(new ImportListSyncCommand());
 
             Mocker.GetMock<IAlbumService>()
-                .Verify(v => v.SetAlbumMonitored(1, true), Times.Never);
+                .Verify(v => v.SetAlbumMonitoredWithCascadeTracks(1, true), Times.Never);
         }
 
         [Test]

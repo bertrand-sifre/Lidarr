@@ -235,7 +235,7 @@ namespace NzbDrone.Core.ImportLists
 
                 if (!existingAlbum.Monitored)
                 {
-                    _albumService.SetAlbumMonitored(existingAlbum.Id, true);
+                    _albumService.SetAlbumMonitoredWithCascadeTracks(existingAlbum.Id, true);
                 }
 
                 if (!existingArtist.Monitored)
