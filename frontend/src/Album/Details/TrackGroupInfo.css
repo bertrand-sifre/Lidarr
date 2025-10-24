@@ -1,0 +1,7 @@
+.title {
+  composes: title from '~Components/DescriptionList/DescriptionListItemTitle.css';
+}
+
+.description {
+  composes: description from '~Components/DescriptionList/DescriptionListItemDescription.css';
+}

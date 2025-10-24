@@ -146,5 +146,49 @@ namespace NzbDrone.Core.Test.ArtistStatsTests
             stats.Should().HaveCount(1);
             stats.First().SizeOnDisk.Should().Be(_trackFile.Size);
         }
+
+        [Test]
+        public void should_count_monitored_tracks()
+        {
+            _track.Monitored = true;
+            GivenTrack();
+
+            var stats = Subject.ArtistStatistics();
+
+            stats.Should().HaveCount(1);
+            stats.First().MonitoredTrackCount.Should().Be(1);
+        }
+
+        [Test]
+        public void should_not_count_unmonitored_tracks()
+        {
+            _track.Monitored = false;
+            GivenTrack();
+
+            var stats = Subject.ArtistStatistics();
+
+            stats.Should().HaveCount(1);
+            stats.First().MonitoredTrackCount.Should().Be(0);
+        }
+
+        [Test]
+        public void should_count_both_monitored_and_unmonitored_tracks()
+        {
+            _track.Monitored = true;
+            GivenTrack();
+
+            var track2 = _track.JsonClone();
+            track2.Id = 0;
+            track2.TrackNumber += 1;
+            track2.ForeignTrackId = "2";
+            track2.Monitored = false;
+            Db.Insert(track2);
+
+            var stats = Subject.ArtistStatistics();
+
+            stats.Should().HaveCount(1);
+            stats.First().TotalTrackCount.Should().Be(2);
+            stats.First().MonitoredTrackCount.Should().Be(1);
+        }
     }
 }
