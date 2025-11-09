@@ -11,6 +11,9 @@ namespace NzbDrone.Core.ArtistStats
         public int AvailableTrackCount { get; set; }
         public int TotalTrackCount { get; set; }
         public int MonitoredTrackCount { get; set; }
+        public int MissingTrackCount { get; set; }
         public long SizeOnDisk { get; set; }
+
+        public int UnmonitoredTrackCount => TotalTrackCount - MonitoredTrackCount;
     }
 }

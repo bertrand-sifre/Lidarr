@@ -190,5 +190,79 @@ namespace NzbDrone.Core.Test.ArtistStatsTests
             stats.First().TotalTrackCount.Should().Be(2);
             stats.First().MonitoredTrackCount.Should().Be(1);
         }
+
+        [Test]
+        public void should_calculate_unmonitored_track_count()
+        {
+            _track.Monitored = true;
+            GivenTrack();
+
+            var track2 = _track.JsonClone();
+            track2.Id = 0;
+            track2.TrackNumber += 1;
+            track2.ForeignTrackId = "2";
+            track2.Monitored = false;
+            Db.Insert(track2);
+
+            var stats = Subject.ArtistStatistics();
+
+            stats.Should().HaveCount(1);
+            stats.First().UnmonitoredTrackCount.Should().Be(1);
+        }
+
+        [Test]
+        public void should_count_missing_monitored_tracks()
+        {
+            _track.Monitored = true;
+            _track.TrackFileId = 0;
+            GivenTrack();
+
+            var stats = Subject.ArtistStatistics();
+
+            stats.Should().HaveCount(1);
+            stats.First().MissingTrackCount.Should().Be(1);
+        }
+
+        [Test]
+        public void should_not_count_missing_unmonitored_tracks()
+        {
+            _track.Monitored = false;
+            _track.TrackFileId = 0;
+            GivenTrack();
+
+            var stats = Subject.ArtistStatistics();
+
+            stats.Should().HaveCount(1);
+            stats.First().MissingTrackCount.Should().Be(0);
+        }
+
+        [Test]
+        public void should_not_count_tracks_with_files_as_missing()
+        {
+            _track.Monitored = true;
+            GivenTrackWithFile();
+            GivenTrack();
+
+            var stats = Subject.ArtistStatistics();
+
+            stats.Should().HaveCount(1);
+            stats.First().MissingTrackCount.Should().Be(0);
+        }
+
+        [Test]
+        public void should_not_count_unreleased_tracks_as_missing()
+        {
+            _album.ReleaseDate = DateTime.Today.AddDays(5);
+            Db.Update(_album);
+
+            _track.Monitored = true;
+            _track.TrackFileId = 0;
+            GivenTrack();
+
+            var stats = Subject.ArtistStatistics();
+
+            stats.Should().HaveCount(1);
+            stats.First().MissingTrackCount.Should().Be(0);
+        }
     }
 }
