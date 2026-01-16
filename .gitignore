@@ -167,3 +167,14 @@ node_modules.nosync
 
 # Ignore Jetbrains IntelliJ Workspace Directories
 .idea/
+
+# don't push this
+/AGENTS.md
+/CLAUDE.md
+/dev.sh
+/docker-compose.yml
+/gluetun-config.toml
+/openspec
+/prowlarr-config
+/lidarr-config
+/.claude

@@ -1,0 +1,58 @@
+# Build outputs
+_output/
+_artifacts/
+_tests/
+*.app
+
+# Node modules and frontend build cache
+node_modules/
+.yarn/
+.pnp.*
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# GitHub
+.github/
+
+# Documentation
+*.md
+docs/
+# Logo/ - Needed for build resources!
+
+# Test files
+*.Test/
+test.sh
+
+# Build scripts (we use Dockerfile instead)
+build.sh
+docs.sh
+
+# CI/CD
+azure-pipelines.yml
+.devcontainer/
+
+# Distribution files
+distribution/
+
+# OpenSpec (if not needed in build)
+openspec/
+.claude/
+
+# Temporary files
+*.tmp
+*.log
+*.cache
+
+# OS files
+Thumbs.db
