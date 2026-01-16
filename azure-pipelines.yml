@@ -9,7 +9,7 @@ variables:
   testsFolder: './_tests'
   yarnCacheFolder: $(Pipeline.Workspace)/.yarn
   nugetCacheFolder: $(Pipeline.Workspace)/.nuget/packages
-  majorVersion: '3.0.1'
+  majorVersion: '3.1.2'
   minorVersion: $[counter('minorVersion', 1076)]
   lidarrVersion: '$(majorVersion).$(minorVersion)'
   buildName: '$(Build.SourceBranchName).$(lidarrVersion)'
@@ -18,9 +18,9 @@ variables:
   dotnetVersion: '8.0.405'
   nodeVersion: '20.X'
   innoVersion: '6.2.0'
-  windowsImage: 'windows-2022'
-  linuxImage: 'ubuntu-22.04'
-  macImage: 'macOS-13'
+  windowsImage: 'windows-2025'
+  linuxImage: 'ubuntu-24.04'
+  macImage: 'macOS-15'
 
 trigger:
   branches:
