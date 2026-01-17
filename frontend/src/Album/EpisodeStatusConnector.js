@@ -6,19 +6,25 @@ import { createSelector } from 'reselect';
 import createAlbumSelector from 'Store/Selectors/createAlbumSelector';
 import createQueueItemSelector from 'Store/Selectors/createQueueItemSelector';
 import createTrackFileSelector from 'Store/Selectors/createTrackFileSelector';
+import createTrackSelector from 'Store/Selectors/createTrackSelector';
 import EpisodeStatus from './EpisodeStatus';
 
 function createMapStateToProps() {
   return createSelector(
     createAlbumSelector(),
+    createTrackSelector(),
     createQueueItemSelector(),
     createTrackFileSelector(),
-    (album, queueItem, trackFile) => {
+    (album, track, queueItem, trackFile) => {
       const result = _.pick(album, [
         'releaseDate',
-        'monitored',
         'grabbed'
       ]);
+
+      // Use track's monitored status instead of album's
+      result.trackMonitored = track && track.monitored;
+      // Indicate if we're showing track-level or album-level status
+      result.albumMonitored = album.monitored;
 
       result.queueItem = queueItem;
       result.trackFile = trackFile;
@@ -47,6 +53,7 @@ class EpisodeStatusConnector extends Component {
 
 EpisodeStatusConnector.propTypes = {
   albumId: PropTypes.number.isRequired,
+  trackId: PropTypes.number,
   trackFileId: PropTypes.number.isRequired
 };
 

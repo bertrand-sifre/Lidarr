@@ -221,6 +221,7 @@ class TrackRow extends Component {
                 >
                   <EpisodeStatusConnector
                     albumId={albumId}
+                    trackId={id}
                     trackFileId={trackFileId}
                   />
                 </TableRowCell>

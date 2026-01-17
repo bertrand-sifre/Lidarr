@@ -12,10 +12,11 @@ import styles from './EpisodeStatus.css';
 function EpisodeStatus(props) {
   const {
     releaseDate,
-    monitored,
+    albumMonitored,
     grabbed,
     queueItem,
-    trackFile
+    trackFile,
+    trackMonitored
   } = props;
 
   const hasTrackFile = !!trackFile;
@@ -85,12 +86,12 @@ function EpisodeStatus(props) {
     );
   }
 
-  if (!monitored) {
+  if (!albumMonitored || !trackMonitored) {
     return (
       <div className={styles.center}>
         <Icon
-          name={icons.UNMONITORED}
-          title={translate('AlbumIsNotMonitored')}
+          name={!trackMonitored ? icons.TRACK_NOT_MONITORED : icons.UNMONITORED}
+          title={translate(!trackMonitored ? 'TrackIsNotMonitored' : 'AlbumIsNotMonitored')}
         />
       </div>
     );
@@ -119,10 +120,11 @@ function EpisodeStatus(props) {
 
 EpisodeStatus.propTypes = {
   releaseDate: PropTypes.string,
-  monitored: PropTypes.bool,
+  albumMonitored: PropTypes.bool,
   grabbed: PropTypes.bool,
   queueItem: PropTypes.object,
-  trackFile: PropTypes.object
+  trackFile: PropTypes.object,
+  trackMonitored: PropTypes.bool
 };
 
 export default EpisodeStatus;

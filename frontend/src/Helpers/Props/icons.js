@@ -54,6 +54,7 @@ import {
   faExclamationTriangle as fasExclamationTriangle,
   faExternalLinkAlt as fasExternalLinkAlt,
   faEye as fasEye,
+  faEyeSlash as fasEyeSlash,
   faFastBackward as fasFastBackward,
   faFastForward as fasFastForward,
   faFileCircleQuestion as fasFileCircleQuestion,
@@ -232,5 +233,6 @@ export const UNMONITORED = farBookmark;
 export const UPDATE = fasRetweet;
 export const UNSAVED_SETTING = farDotCircle;
 export const VIEW = fasEye;
+export const TRACK_NOT_MONITORED = fasEyeSlash;
 export const WARNING = fasExclamationTriangle;
 export const WIKI = fasBookReader;

@@ -1267,6 +1267,7 @@
   "TrackFilesCountMessage": "No track files",
   "TrackFilesLoadError": "Unable to load track files",
   "TrackImported": "Track Imported",
+  "TrackIsNotMonitored": "Track is not monitored",
   "TrackMissingFromDisk": "Track missing from disk",
   "TrackNaming": "Track Naming",
   "TrackNumber": "Track Number",
