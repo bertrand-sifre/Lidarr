@@ -1,0 +1,35 @@
+.expandedRow {
+  padding: 0 !important;
+  background-color: var(--tableRowHoverBackgroundColor);
+}
+
+.tracksContainer {
+  padding: 10px 20px;
+  margin-left: 40px;
+}
+
+.monitored {
+  width: 50px;
+}
+
+.trackNumber {
+  width: 60px;
+}
+
+.title {
+  composes: cell from '~Components/Table/Cells/TableRowCell.css';
+}
+
+.actions {
+  composes: cell from '~Components/Table/Cells/TableRowCell.css';
+  width: 70px;
+  text-align: center;
+}
+
+.searchIcon {
+  cursor: pointer;
+
+  &:hover {
+    color: var(--linkHoverColor);
+  }
+}

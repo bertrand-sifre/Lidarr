@@ -1,3 +1,18 @@
+.expand {
+  composes: cell from '~Components/Table/Cells/TableRowCell.css';
+
+  width: 35px;
+  cursor: pointer;
+
+  svg {
+    color: var(--iconColor);
+  }
+
+  &:hover svg {
+    color: var(--linkHoverColor);
+  }
+}
+
 .episode,
 .status {
   composes: cell from '~Components/Table/Cells/TableRowCell.css';

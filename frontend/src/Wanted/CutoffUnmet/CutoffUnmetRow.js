@@ -1,46 +1,87 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { Component } from 'react';
 import albumEntities from 'Album/albumEntities';
 import AlbumSearchCellConnector from 'Album/AlbumSearchCellConnector';
 import AlbumTitleLink from 'Album/AlbumTitleLink';
 import EpisodeStatusConnector from 'Album/EpisodeStatusConnector';
 import ArtistNameLink from 'Artist/ArtistNameLink';
+import Icon from 'Components/Icon';
+import Link from 'Components/Link/Link';
 import RelativeDateCellConnector from 'Components/Table/Cells/RelativeDateCellConnector';
 import TableRowCell from 'Components/Table/Cells/TableRowCell';
 import TableSelectCell from 'Components/Table/Cells/TableSelectCell';
 import TableRow from 'Components/Table/TableRow';
+import { icons } from 'Helpers/Props';
+import WantedAlbumTracksConnector from '../WantedAlbumTracksConnector';
 import styles from './CutoffUnmetRow.css';
 
-function CutoffUnmetRow(props) {
-  const {
-    id,
-    trackFileId,
-    artist,
-    releaseDate,
-    foreignAlbumId,
-    albumType,
-    title,
-    lastSearchTime,
-    disambiguation,
-    isSelected,
-    columns,
-    onSelectedChange
-  } = props;
+class CutoffUnmetRow extends Component {
 
-  if (!artist) {
-    return null;
+  //
+  // Lifecycle
+
+  constructor(props, context) {
+    super(props, context);
+
+    this.state = {
+      isExpanded: false
+    };
   }
 
-  return (
-    <TableRow>
-      <TableSelectCell
-        id={id}
-        isSelected={isSelected}
-        onSelectedChange={onSelectedChange}
-      />
+  //
+  // Listeners
 
-      {
-        columns.map((column) => {
+  onExpandPress = () => {
+    this.setState({ isExpanded: !this.state.isExpanded });
+  };
+
+  //
+  // Render
+
+  render() {
+    const {
+      id,
+      trackFileId,
+      artist,
+      releaseDate,
+      foreignAlbumId,
+      albumType,
+      title,
+      lastSearchTime,
+      disambiguation,
+      statistics,
+      isSelected,
+      columns,
+      onSelectedChange
+    } = this.props;
+
+    const { isExpanded } = this.state;
+
+    if (!artist) {
+      return null;
+    }
+
+    return (
+      <>
+        <TableRow>
+          <TableRowCell className={styles.expand}>
+            <Link onPress={this.onExpandPress}>
+              <Icon
+                name={isExpanded ? icons.COLLAPSE : icons.EXPAND}
+                size={14}
+                title={isExpanded ? 'Hide tracks' : 'Show tracks'}
+              />
+            </Link>
+          </TableRowCell>
+
+          <TableSelectCell
+            id={id}
+            isSelected={isSelected}
+            onSelectedChange={onSelectedChange}
+          />
+
+          {
+            columns.map((column) => {
           const {
             name,
             isVisible
@@ -99,6 +140,26 @@ function CutoffUnmetRow(props) {
             );
           }
 
+          if (name === 'monitoredTracks') {
+            return (
+              <TableRowCell key={name}>
+                {statistics && statistics.monitoredTrackCount !== undefined ?
+                  `${statistics.monitoredTrackCount}/${statistics.totalTrackCount}` :
+                  '-'}
+              </TableRowCell>
+            );
+          }
+
+          if (name === 'missingTracks') {
+            return (
+              <TableRowCell key={name}>
+                {statistics && statistics.missingTrackCount !== undefined ?
+                  `${statistics.missingTrackCount}/${statistics.monitoredTrackCount}` :
+                  '-'}
+              </TableRowCell>
+            );
+          }
+
           if (name === 'status') {
             return (
               <TableRowCell
@@ -127,11 +188,21 @@ function CutoffUnmetRow(props) {
             );
           }
 
-          return null;
-        })
-      }
-    </TableRow>
-  );
+              return null;
+            })
+          }
+        </TableRow>
+
+        {
+          isExpanded &&
+            <WantedAlbumTracksConnector
+              albumId={id}
+              albumTitle={title}
+            />
+        }
+      </>
+    );
+  }
 }
 
 CutoffUnmetRow.propTypes = {
@@ -144,6 +215,7 @@ CutoffUnmetRow.propTypes = {
   title: PropTypes.string.isRequired,
   lastSearchTime: PropTypes.string,
   disambiguation: PropTypes.string,
+  statistics: PropTypes.object,
   isSelected: PropTypes.bool,
   columns: PropTypes.arrayOf(PropTypes.object).isRequired,
   onSelectedChange: PropTypes.func.isRequired

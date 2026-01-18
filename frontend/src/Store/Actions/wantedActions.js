@@ -29,6 +29,12 @@ export const defaultState = {
 
     columns: [
       {
+        name: 'expand',
+        columnLabel: '',
+        isVisible: true,
+        isModifiable: false
+      },
+      {
         name: 'artists.sortName',
         label: () => translate('ArtistName'),
         isSortable: true,
@@ -50,6 +56,18 @@ export const defaultState = {
         name: 'releaseDate',
         label: () => translate('ReleaseDate'),
         isSortable: true,
+        isVisible: true
+      },
+      {
+        name: 'monitoredTracks',
+        label: 'Monitored',
+        isSortable: false,
+        isVisible: true
+      },
+      {
+        name: 'missingTracks',
+        label: 'Missing',
+        isSortable: false,
         isVisible: true
       },
       {
@@ -109,6 +127,12 @@ export const defaultState = {
 
     columns: [
       {
+        name: 'expand',
+        columnLabel: '',
+        isVisible: true,
+        isModifiable: false
+      },
+      {
         name: 'artists.sortName',
         label: () => translate('ArtistName'),
         isSortable: true,
@@ -130,6 +154,18 @@ export const defaultState = {
         name: 'releaseDate',
         label: () => translate('ReleaseDate'),
         isSortable: true,
+        isVisible: true
+      },
+      {
+        name: 'monitoredTracks',
+        label: 'Monitored',
+        isSortable: false,
+        isVisible: true
+      },
+      {
+        name: 'missingTracks',
+        label: 'Missing',
+        isSortable: false,
         isVisible: true
       },
       // {

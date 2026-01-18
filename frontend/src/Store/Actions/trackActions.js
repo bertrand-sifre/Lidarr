@@ -185,7 +185,7 @@ export const reducers = createHandleActions({
 
   [SET_TRACKS_TABLE_OPTION]: createSetTableOptionReducer(section),
 
-  [FETCH_TRACKS]: (state) => {
+  [CLEAR_TRACKS]: (state) => {
     return Object.assign({}, state, {
       isFetching: false,
       isPopulated: false,
