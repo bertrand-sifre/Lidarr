@@ -1,0 +1,125 @@
+name: Sync Plugin and Rebase Trackarr
+
+on:
+  schedule:
+    # Runs daily at 2:00 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-and-rebase:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/Lidarr/Lidarr.git || true
+          git remote -v
+
+      - name: Fetch all remotes
+        run: |
+          git fetch --all --prune
+
+      - name: Sync plugin branch with upstream
+        run: |
+          # Checkout plugin branch
+          git checkout plugin || git checkout -b plugin origin/plugin
+
+          # Reset to upstream/plugin if it exists
+          if git rev-parse --verify upstream/plugin >/dev/null 2>&1; then
+            echo "Syncing plugin branch with upstream/plugin"
+            git reset --hard upstream/plugin
+            git push origin plugin --force
+          else
+            echo "Warning: upstream/plugin does not exist, skipping sync"
+          fi
+
+      - name: Rebase Trackarr on plugin
+        id: rebase
+        continue-on-error: true
+        run: |
+          # Checkout Trackarr branch
+          git checkout Trackarr
+
+          # Attempt rebase
+          git rebase plugin
+
+      - name: Push rebased Trackarr
+        if: steps.rebase.outcome == 'success'
+        run: |
+          git push origin Trackarr --force-with-lease
+
+      - name: Handle rebase conflicts
+        if: steps.rebase.outcome == 'failure'
+        run: |
+          echo "::error::Rebase failed due to conflicts"
+          git rebase --abort
+
+          # Create an issue to notify about the conflict
+          echo "Rebase conflicts detected. Manual intervention required."
+          exit 1
+
+      - name: Notify on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = 'Daily Sync Failed: Rebase Conflicts Detected';
+            const body = `The daily sync and rebase workflow failed.
+
+            **Details:**
+            - Workflow: ${context.workflow}
+            - Run: ${context.runNumber}
+            - Run URL: ${context.payload.repository.html_url}/actions/runs/${context.runId}
+
+            Manual intervention is required to resolve rebase conflicts between \`Trackarr\` and \`plugin\` branches.
+
+            **Steps to resolve:**
+            1. \`git fetch --all\`
+            2. \`git checkout Trackarr\`
+            3. \`git rebase plugin\`
+            4. Resolve conflicts manually
+            5. \`git rebase --continue\`
+            6. \`git push origin Trackarr --force-with-lease\`
+            `;
+
+            // Check if issue already exists
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'automated-sync'
+            });
+
+            const existingIssue = issues.data.find(issue => issue.title === title);
+
+            if (!existingIssue) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['automated-sync', 'needs-attention']
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssue.number,
+                body: `Another sync failure occurred on ${new Date().toISOString()}\n\n${context.payload.repository.html_url}/actions/runs/${context.runId}`
+              });
+            }
