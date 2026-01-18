@@ -1,0 +1,85 @@
+name: Sync Plugin and Rebase Trackarr
+
+on:
+  schedule:
+    # Runs daily at 2:00 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  sync-and-rebase:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/Lidarr/Lidarr.git || true
+          git remote -v
+
+      - name: Fetch all remotes
+        run: |
+          git fetch --all --prune
+
+      - name: Sync plugin branch with upstream
+        run: |
+          if git rev-parse --verify upstream/plugin >/dev/null 2>&1; then
+            echo "Syncing plugin branch with upstream/plugin"
+            # Checkout local plugin if it exists, otherwise create it from upstream
+            git checkout plugin 2>/dev/null || git checkout -b plugin upstream/plugin
+            git reset --hard upstream/plugin
+            git push origin plugin --force
+          else
+            echo "Warning: upstream/plugin does not exist, skipping sync"
+          fi
+
+      - name: Rebase Trackarr on plugin
+        id: rebase
+        continue-on-error: true
+        run: |
+          # Checkout Trackarr branch
+          git checkout Trackarr
+
+          # Attempt rebase
+          git rebase plugin
+
+      - name: Push rebased Trackarr
+        if: steps.rebase.outcome == 'success'
+        run: |
+          git push origin Trackarr --force-with-lease
+
+      - name: Handle rebase conflicts
+        if: steps.rebase.outcome == 'failure'
+        run: |
+          echo "::error::Rebase failed due to conflicts"
+          git rebase --abort || true
+          echo "Rebase conflicts detected. Manual intervention required."
+          exit 1
+
+      - name: Restore default branch for notification
+        if: failure()
+        run: git checkout ${{ github.ref_name }} || true
+
+      - name: Notify on failure
+        if: failure()
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          filename: .github/sync-failure-issue.md
+          update_existing: true
+          search_existing: open
