@@ -70,6 +70,7 @@ namespace NzbDrone.Core.Indexers
         public abstract Task<IList<ReleaseInfo>> FetchRecent();
         public abstract Task<IList<ReleaseInfo>> Fetch(AlbumSearchCriteria searchCriteria);
         public abstract Task<IList<ReleaseInfo>> Fetch(ArtistSearchCriteria searchCriteria);
+        public abstract Task<IList<ReleaseInfo>> Fetch(TrackSearchCriteria searchCriteria);
         public abstract HttpRequest GetDownloadRequest(string link);
 
         protected virtual IList<ReleaseInfo> CleanupReleases(IEnumerable<ReleaseInfo> releases, bool isRecent = false)

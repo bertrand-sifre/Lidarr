@@ -17,6 +17,7 @@ namespace NzbDrone.Core.IndexerSearch
     {
         Task<List<DownloadDecision>> AlbumSearch(int albumId, bool missingOnly, bool userInvokedSearch, bool interactiveSearch);
         Task<List<DownloadDecision>> ArtistSearch(int artistId, bool missingOnly, bool userInvokedSearch, bool interactiveSearch);
+        Task<List<DownloadDecision>> TrackSearch(Definitions.TrackSearchCriteria criteria);
     }
 
     public class ReleaseSearchService : ISearchForReleases
@@ -69,6 +70,12 @@ namespace NzbDrone.Core.IndexerSearch
             downloadDecisions.AddRange(decisions);
 
             return DeDupeDecisions(downloadDecisions);
+        }
+
+        public async Task<List<DownloadDecision>> TrackSearch(Definitions.TrackSearchCriteria criteria)
+        {
+            var decisions = await Dispatch(indexer => indexer.Fetch(criteria), criteria);
+            return DeDupeDecisions(decisions);
         }
 
         public async Task<List<DownloadDecision>> AlbumSearch(Album album, bool missingOnly, bool userInvokedSearch, bool interactiveSearch)
@@ -140,7 +147,7 @@ namespace NzbDrone.Core.IndexerSearch
             _logger.ProgressDebug("Total of {0} reports were found for {1} from {2} indexers", reports.Count, criteriaBase, indexers.Count);
 
             // Update the last search time for all albums if at least 1 indexer was searched.
-            if (indexers.Any())
+            if (indexers.Any() && criteriaBase.Albums?.Any() == true)
             {
                 var lastSearchTime = DateTime.UtcNow;
                 _logger.Debug("Setting last search time to: {0}", lastSearchTime);

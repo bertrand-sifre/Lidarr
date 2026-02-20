@@ -29,8 +29,8 @@ function createMapDispatchToProps(dispatch, props) {
 
     onSearchTrack({ albumId, trackId }) {
       dispatch(executeCommand({
-        name: commandNames.ALBUM_SEARCH,
-        albumIds: [albumId]
+        name: commandNames.TRACK_SEARCH,
+        trackIds: [trackId]
       }));
     }
   };
