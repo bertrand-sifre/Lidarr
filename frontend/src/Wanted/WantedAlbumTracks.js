@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import AlbumInteractiveSearchModal from 'Album/Search/AlbumInteractiveSearchModal';
+import TrackInteractiveSearchModalConnector from './TrackInteractiveSearchModalConnector';
 import Icon from 'Components/Icon';
 import Link from 'Components/Link/Link';
 import LoadingIndicator from 'Components/Loading/LoadingIndicator';
@@ -23,6 +23,8 @@ class WantedAlbumTracks extends Component {
 
     this.state = {
       isInteractiveSearchOpen: false,
+      currentTrackId: null,
+      currentTrackTitle: null,
       tracks: [],
       isFetching: false
     };
@@ -62,8 +64,8 @@ class WantedAlbumTracks extends Component {
     this.props.onSearchTrack({ albumId, trackId });
   };
 
-  onInteractiveSearchPress = () => {
-    this.setState({ isInteractiveSearchOpen: true });
+  onInteractiveSearchPress = (trackId, trackTitle) => {
+    this.setState({ isInteractiveSearchOpen: true, currentTrackId: trackId, currentTrackTitle: trackTitle });
   };
 
   onInteractiveSearchModalClose = () => {
@@ -75,12 +77,10 @@ class WantedAlbumTracks extends Component {
 
   render() {
     const {
-      albumId,
-      albumTitle,
       isSearching
     } = this.props;
 
-    const { isInteractiveSearchOpen, tracks, isFetching } = this.state;
+    const { isInteractiveSearchOpen, currentTrackId, currentTrackTitle, tracks, isFetching } = this.state;
 
     if (isFetching) {
       return (
@@ -158,7 +158,7 @@ class WantedAlbumTracks extends Component {
                         </Link>
                       </TableRowCell>
                       <TableRowCell className={styles.actions}>
-                        <Link onPress={this.onInteractiveSearchPress}>
+                        <Link onPress={() => this.onInteractiveSearchPress(track.id, track.title)}>
                           <Icon
                             name={icons.INTERACTIVE}
                             title="Interactive search"
@@ -175,10 +175,10 @@ class WantedAlbumTracks extends Component {
         </div>
         </td>
 
-        <AlbumInteractiveSearchModal
+        <TrackInteractiveSearchModalConnector
           isOpen={isInteractiveSearchOpen}
-          albumId={albumId}
-          albumTitle={albumTitle || `Album ${albumId}`}
+          trackId={currentTrackId}
+          trackTitle={currentTrackTitle || ''}
           onModalClose={this.onInteractiveSearchModalClose}
         />
       </TableRow>

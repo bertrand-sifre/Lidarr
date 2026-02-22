@@ -18,6 +18,7 @@ namespace NzbDrone.Core.IndexerSearch
         Task<List<DownloadDecision>> AlbumSearch(int albumId, bool missingOnly, bool userInvokedSearch, bool interactiveSearch);
         Task<List<DownloadDecision>> ArtistSearch(int artistId, bool missingOnly, bool userInvokedSearch, bool interactiveSearch);
         Task<List<DownloadDecision>> TrackSearch(Definitions.TrackSearchCriteria criteria);
+        Task<List<DownloadDecision>> TrackSearch(int trackId, bool userInvokedSearch, bool interactiveSearch);
     }
 
     public class ReleaseSearchService : ISearchForReleases
@@ -25,18 +26,24 @@ namespace NzbDrone.Core.IndexerSearch
         private readonly IIndexerFactory _indexerFactory;
         private readonly IAlbumService _albumService;
         private readonly IArtistService _artistService;
+        private readonly ITrackService _trackService;
+        private readonly IReleaseService _releaseService;
         private readonly IMakeDownloadDecision _makeDownloadDecision;
         private readonly Logger _logger;
 
         public ReleaseSearchService(IIndexerFactory indexerFactory,
                                 IAlbumService albumService,
                                 IArtistService artistService,
+                                ITrackService trackService,
+                                IReleaseService releaseService,
                                 IMakeDownloadDecision makeDownloadDecision,
                                 Logger logger)
         {
             _indexerFactory = indexerFactory;
             _albumService = albumService;
             _artistService = artistService;
+            _trackService = trackService;
+            _releaseService = releaseService;
             _makeDownloadDecision = makeDownloadDecision;
             _logger = logger;
         }
@@ -75,6 +82,22 @@ namespace NzbDrone.Core.IndexerSearch
         public async Task<List<DownloadDecision>> TrackSearch(Definitions.TrackSearchCriteria criteria)
         {
             var decisions = await Dispatch(indexer => indexer.Fetch(criteria), criteria);
+            return DeDupeDecisions(decisions);
+        }
+
+        public async Task<List<DownloadDecision>> TrackSearch(int trackId, bool userInvokedSearch, bool interactiveSearch)
+        {
+            var track = _trackService.GetTrack(trackId);
+            var albumRelease = _releaseService.GetRelease(track.AlbumReleaseId);
+            var album = _albumService.GetAlbum(albumRelease.AlbumId);
+            var artist = _artistService.GetArtist(album.ArtistId);
+
+            var searchSpec = Get<TrackSearchCriteria>(artist, new List<Album> { album }, userInvokedSearch, interactiveSearch);
+            searchSpec.TrackTitle = track.Title;
+            searchSpec.AlbumTitle = album.Title;
+            searchSpec.Tracks = new List<Track> { track };
+
+            var decisions = await Dispatch(indexer => indexer.Fetch(searchSpec), searchSpec);
             return DeDupeDecisions(decisions);
         }
 
