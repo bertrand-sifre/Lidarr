@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using NLog;
 using NzbDrone.Common.Instrumentation.Extensions;
-using NzbDrone.Core.DecisionEngine;
 using NzbDrone.Core.Download;
 using NzbDrone.Core.IndexerSearch.Definitions;
 using NzbDrone.Core.Messaging.Commands;
@@ -73,8 +71,11 @@ namespace NzbDrone.Core.IndexerSearch
             var decisions = _releaseSearchService.TrackSearch(criteria).GetAwaiter().GetResult();
             var processed = _processDownloadDecisions.ProcessDecisions(decisions).GetAwaiter().GetResult();
 
-            _logger.ProgressInfo("Track search completed for [{0} - {1}]. {2} reports downloaded.",
-                artist.Name, track.Title, processed.Grabbed.Count);
+            _logger.ProgressInfo(
+                "Track search completed for [{0} - {1}]. {2} reports downloaded.",
+                artist.Name,
+                track.Title,
+                processed.Grabbed.Count);
         }
     }
 }
