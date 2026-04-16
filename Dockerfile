@@ -57,6 +57,7 @@ ARG TARGETARCH
 
 # Install runtime dependencies
 RUN apk add --no-cache \
+    bash \
     ca-certificates \
     icu-libs \
     sqlite-libs \
