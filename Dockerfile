@@ -59,6 +59,8 @@ ARG TARGETARCH
 RUN apk add --no-cache \
     bash \
     ca-certificates \
+    ffmpeg \
+    flac \
     icu-libs \
     sqlite-libs \
     chromaprint \
