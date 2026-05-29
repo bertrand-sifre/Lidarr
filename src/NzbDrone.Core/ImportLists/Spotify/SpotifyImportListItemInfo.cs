@@ -6,6 +6,7 @@ namespace NzbDrone.Core.ImportLists.Spotify
     {
         public string ArtistSpotifyId { get; set; }
         public string AlbumSpotifyId { get; set; }
+        public string TrackTitle { get; set; }
 
         public override string ToString()
         {
