@@ -166,6 +166,12 @@ namespace NzbDrone.Core.Parser
                 albumInfo = _albumService.FindByTitleInexact(artist.ArtistMetadataId, parsedAlbumInfo.AlbumTitle);
             }
 
+            if (albumInfo == null && searchCriteria is TrackSearchCriteria && searchCriteria.Albums.Count == 1)
+            {
+                _logger.Debug("Track search: folder path did not match album title, using album from search criteria for {0}", parsedAlbumInfo.AlbumTitle);
+                albumInfo = searchCriteria.Albums[0];
+            }
+
             if (albumInfo != null)
             {
                 result.Add(albumInfo);
