@@ -22,12 +22,6 @@ namespace NzbDrone.Core.MediaFiles.TrackImport.Specifications
                 return Decision.Reject("Has unmatched tracks");
             }
 
-            if (item.NewDownload && item.TrackMapping.MBExtra.Count > 0)
-            {
-                _logger.Debug("This release is missing tracks. Skipping {0}", item);
-                return Decision.Reject("Has missing tracks");
-            }
-
             return Decision.Accept();
         }
     }
